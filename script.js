@@ -41,7 +41,7 @@ appointmentForm.addEventListener('submit', function(e) {
     
     // ВАШ chat_id (ЗАМЕНИТЕ НА СВОЙ!)
     const botToken = '8071734177:AAGFaOJqJLdtPSRj-zQQfk7mkiLsplFXUTE';
-    const chatId = '8071734177'; // ← ЗАМЕНИТЕ ЭТО!
+    const chatId = '-5063887745'; // ← ЗАМЕНИТЕ ЭТО!
     
     // Формируем сообщение
     const message = `🎯 НОВАЯ ЗАЯВКА С САЙТА АКАЛАН

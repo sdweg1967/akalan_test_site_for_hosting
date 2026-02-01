@@ -255,56 +255,66 @@
                 <h3>Записаться на консультацию</h3>
                 <button class="close-modal" id="closeModal">
                     <i class="fas fa-times"></i>
-                    
                 </button>
-                           <form class="appointment-form" id="appointmentForm" action="#" method="post">
-    <!-- Добавь эти скрытые поля -->
-    <input type="hidden" name="_subject" value="Новая заявка с сайта АКАЛАН">
-    <input type="hidden" name="_to" value="akalan.HQ@yandex.ru">
-    <input type="hidden" name="_cc" value="">
-    
-    <div class="form-group">
-        <label for="name">Ваше имя *</label>
-        <input type="text" id="name" name="name" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="phone">Номер телефона *</label>
-        <input type="tel" id="phone" name="phone" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="email">Email *</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="service">Интересующая услуга</label>
-        <select id="service" name="service">
-            <option value="">Выберите услугу</option>
-            <option value="Бизнес-консалтинг">Бизнес-консалтинг</option>
-            <option value="Управление проектами">Управление проектами</option>
-            <option value="Партнерские программы">Партнерские программы</option>
-            <option value="Аналитика и отчетность">Аналитика и отчетность</option>
-            <option value="Другое">Другое</option>
-        </select>
-    </div>
-    
-    <div class="form-group">
-        <label for="message">Сообщение</label>
-        <textarea id="message" name="message" rows="3" placeholder="Опишите кратко вашу задачу..."></textarea>
-    </div>
-    
-    <button type="submit" class="submit-btn">
-        <i class="fas fa-paper-plane"></i> Отправить заявку
-    </button>
-</form>
             </div>
             
             <div class="modal-body">
                 <p>Оставьте свои контактные данные, и наш специалист свяжется с вами в течение 24 часов для согласования времени консультации.</p>
                 
-
+                <form class="appointment-form" id="appointmentForm">
+                    <div class="form-group">
+                        <label for="name">Ваше имя *</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Номер телефона *</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="service">Интересующая услуга</label>
+                        <select id="service">
+                            <option value="">Выберите услугу</option>
+                            <option value="consulting">Бизнес-консалтинг</option>
+                            <option value="management">Управление проектами</option>
+                            <option value="partnership">Партнерские программы</option>
+                            <option value="analytics">Аналитика и отчетность</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Сообщение</label>
+                        <textarea id="message" rows="3" placeholder="Опишите кратко вашу задачу..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Отправить заявку
+                    </button>
+                    
+                    <p class="form-note">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных</p>
+                </form>
+                
+                <div class="alternative-contact">
+                    <p>Или свяжитесь с нами напрямую:</p>
+                    <div class="contact-methods">
+                        <a href="mailto:akalan.HQ@yandex.ru" class="contact-method">
+                            <i class="fas fa-envelope"></i> akalan.HQ@yandex.ru
+                        </a>
+                        <a href="tel:+78001234567" class="contact-method">
+                            <i class="fas fa-phone"></i> +7 (800) 123-45-67
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Подвал -->
     <footer class="footer">

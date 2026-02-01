@@ -25,11 +25,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-// Простая отправка формы на почту
+// Отправка формы в Telegram
 appointmentForm.addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Собираем данные
+    // Собираем данные формы
     const formData = {
         name: document.getElementById('name').value.trim(),
         phone: document.getElementById('phone').value.trim(),
@@ -39,27 +39,95 @@ appointmentForm.addEventListener('submit', function(e) {
         date: new Date().toLocaleString('ru-RU')
     };
     
-    // Telegram данные
+    // ТВОИ ДАННЫЕ - НЕ МЕНЯЙ!
     const botToken = '8160715153:AAHuMwJCCKuqiiyUhfJY93CPHWtq9NlWZlM';
     const chatId = '-1003316496578';
     
-    // 1. Отправляем в Telegram
-    const telegramMessage = `
-🎯 НОВАЯ ЗАЯВКА С САЙТА АКАЛАН
+    // Форматируем красивое сообщение
+    const message = `
+🎯 *НОВАЯ ЗАЯВКА С САЙТА АКАЛАН*
 📅 ${formData.date}
 
-👤 Имя: ${formData.name}
-📞 Телефон: ${formData.phone}
-📧 Email: ${formData.email}
-💼 Услуга: ${formData.service || 'Не указана'}
-📝 Сообщение: ${formData.message || 'Не указано'}
+👤 *Имя:* ${formData.name}
+📞 *Телефон:* ${formData.phone}
+📧 *Email:* ${formData.email}
+💼 *Услуга:* ${formData.service || 'Не указана'}
+📝 *Сообщение:* ${formData.message || 'Не указано'}
 
-📍 akalan.ru
+📍 *Источник:* сайт akalan.ru
+⏰ *Время:* ${new Date().toLocaleTimeString('ru-RU')}
     `.trim();
     
-    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(telegramMessage)}`;
+    // Кодируем сообщение для URL
+    const encodedMessage = encodeURIComponent(message);
     
- 
+    // Формируем URL для Telegram API
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodedMessage}&parse_mode=Markdown`;
+    
+    // Показываем индикатор загрузки
+    const submitBtn = document.querySelector('.submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+    submitBtn.disabled = true;
+    
+    console.log('Отправляем запрос на URL:', url);
+    
+    // Отправляем в Telegram
+    fetch(url)
+        .then(response => {
+            console.log('Ответ получен, статус:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Ответ от Telegram:', data);
+            
+            if (data.ok) {
+                // Успешно
+                alert('✅ Заявка успешно отправлена! Мы свяжемся с вами в течение 24 часов.');
+                modalOverlay.classList.remove('active');
+                appointmentForm.reset();
+                document.body.style.overflow = 'auto';
+                
+                // Дополнительно можно отправить копию на почту
+                const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Новая заявка с сайта от ${formData.name}&body=${encodeURIComponent(message)}`;
+                setTimeout(() => {
+                    window.open(mailtoLink, '_blank');
+                }, 1000);
+                
+            } else {
+                // Ошибка от Telegram
+                let errorMsg = 'Ошибка отправки: ';
+                if (data.description) {
+                    errorMsg += data.description;
+                } else {
+                    errorMsg += 'неизвестная ошибка';
+                }
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при отправке:', error);
+            
+            // Показываем подробную ошибку
+            alert(`⚠️ Произошла ошибка при отправке:\n\n${error.message}\n\nПожалуйста, отправьте заявку вручную на почту: akalan.HQ@yandex.ru`);
+            
+            // Предлагаем отправить на почту
+            const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта от ${formData.name}&body=Имя: ${formData.name}%0AТелефон: ${formData.phone}%0AEmail: ${formData.email}%0AУслуга: ${formData.service}%0AСообщение: ${formData.message}`;
+            
+            if (confirm('Открыть почтовый клиент для отправки?')) {
+                window.location.href = mailtoLink;
+            }
+            
+            // Закрываем модалку
+            modalOverlay.classList.remove('active');
+            appointmentForm.reset();
+            document.body.style.overflow = 'auto';
+        })
+        .finally(() => {
+            // Восстанавливаем кнопку
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
 });
     
     // Плавная прокрутка для навигационных ссылок

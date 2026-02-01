@@ -25,35 +25,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
- // Отправка формы в Telegram
+// Отправка формы в Telegram
 appointmentForm.addEventListener('submit', function(e) {
     e.preventDefault();
     
     // Собираем данные формы
     const formData = {
-        name: document.getElementById('name').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
+        name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim(),
         service: document.getElementById('service').value,
-        message: document.getElementById('message').value,
+        message: document.getElementById('message').value.trim(),
         date: new Date().toLocaleString('ru-RU')
     };
     
-    // ВАШ chat_id (ЗАМЕНИТЕ НА СВОЙ!)
-    const botToken = '8071734177:AAGFaOJqJLdtPSRj-zQQfk7mkiLsplFXUTE';
-    const chatId = '-5063887745'; // ← ЗАМЕНИТЕ ЭТО!
+    // ТВОИ ДАННЫЕ - НЕ МЕНЯЙ!
+    const botToken = '8160715153:AAHuMwJCCKuqiiyUhfJY93CPHWtq9NlWZlM';
+    const chatId = '-1003316496578';
     
-    // Формируем сообщение
-    const message = `🎯 НОВАЯ ЗАЯВКА С САЙТА АКАЛАН
+    // Форматируем красивое сообщение
+    const message = `
+🎯 *НОВАЯ ЗАЯВКА С САЙТА АКАЛАН*
 📅 ${formData.date}
-👤 Имя: ${formData.name}
-📞 Телефон: ${formData.phone}
-📧 Email: ${formData.email}
-💼 Услуга: ${formData.service}
-📝 Сообщение: ${formData.message || 'Не указано'}`;
+
+👤 *Имя:* ${formData.name}
+📞 *Телефон:* ${formData.phone}
+📧 *Email:* ${formData.email}
+💼 *Услуга:* ${formData.service || 'Не указана'}
+📝 *Сообщение:* ${formData.message || 'Не указано'}
+
+📍 *Источник:* сайт akalan.ru
+⏰ *Время:* ${new Date().toLocaleTimeString('ru-RU')}
+    `.trim();
     
+    // Кодируем сообщение для URL
     const encodedMessage = encodeURIComponent(message);
-    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodedMessage}`;
+    
+    // Формируем URL для Telegram API
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodedMessage}&parse_mode=Markdown`;
     
     // Показываем индикатор загрузки
     const submitBtn = document.querySelector('.submit-btn');
@@ -61,30 +70,57 @@ appointmentForm.addEventListener('submit', function(e) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
     submitBtn.disabled = true;
     
+    console.log('Отправляем запрос на URL:', url);
+    
     // Отправляем в Telegram
     fetch(url)
-        .then(response => response.json())
+        .then(response => {
+            console.log('Ответ получен, статус:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Ответ от Telegram:', data);
+            
             if (data.ok) {
+                // Успешно
                 alert('✅ Заявка успешно отправлена! Мы свяжемся с вами в течение 24 часов.');
                 modalOverlay.classList.remove('active');
                 appointmentForm.reset();
                 document.body.style.overflow = 'auto';
+                
+                // Дополнительно можно отправить копию на почту
+                const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Новая заявка с сайта от ${formData.name}&body=${encodeURIComponent(message)}`;
+                setTimeout(() => {
+                    window.open(mailtoLink, '_blank');
+                }, 1000);
+                
             } else {
-                throw new Error(data.description || 'Ошибка отправки');
+                // Ошибка от Telegram
+                let errorMsg = 'Ошибка отправки: ';
+                if (data.description) {
+                    errorMsg += data.description;
+                } else {
+                    errorMsg += 'неизвестная ошибка';
+                }
+                throw new Error(errorMsg);
             }
         })
         .catch(error => {
-            console.error('Ошибка Telegram:', error);
+            console.error('Ошибка при отправке:', error);
             
-            // Резервный вариант - отправка на почту
-            const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта&body=${encodeURIComponent(message)}`;
-            window.location.href = mailtoLink;
+            // Показываем подробную ошибку
+            alert(`⚠️ Произошла ошибка при отправке:\n\n${error.message}\n\nПожалуйста, отправьте заявку вручную на почту: akalan.HQ@yandex.ru`);
             
-            alert('📧 Если сообщение не отправилось автоматически, скопируйте данные и отправьте на почту: akalan.HQ@yandex.ru');
+            // Предлагаем отправить на почту
+            const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта от ${formData.name}&body=Имя: ${formData.name}%0AТелефон: ${formData.phone}%0AEmail: ${formData.email}%0AУслуга: ${formData.service}%0AСообщение: ${formData.message}`;
+            
+            if (confirm('Открыть почтовый клиент для отправки?')) {
+                window.location.href = mailtoLink;
+            }
             
             // Закрываем модалку
             modalOverlay.classList.remove('active');
+            appointmentForm.reset();
             document.body.style.overflow = 'auto';
         })
         .finally(() => {

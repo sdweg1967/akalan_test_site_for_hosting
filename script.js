@@ -25,11 +25,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-// Отправка формы в Telegram
+// Простая отправка формы на почту
 appointmentForm.addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Собираем данные формы
+    // Собираем данные
     const formData = {
         name: document.getElementById('name').value.trim(),
         phone: document.getElementById('phone').value.trim(),
@@ -39,88 +39,78 @@ appointmentForm.addEventListener('submit', function(e) {
         date: new Date().toLocaleString('ru-RU')
     };
     
-    // ТВОИ ДАННЫЕ - НЕ МЕНЯЙ!
+    // Telegram данные
     const botToken = '8160715153:AAHuMwJCCKuqiiyUhfJY93CPHWtq9NlWZlM';
     const chatId = '-1003316496578';
     
-    // Форматируем красивое сообщение
-    const message = `
-🎯 *НОВАЯ ЗАЯВКА С САЙТА АКАЛАН*
+    // 1. Отправляем в Telegram
+    const telegramMessage = `
+🎯 НОВАЯ ЗАЯВКА С САЙТА АКАЛАН
 📅 ${formData.date}
 
-👤 *Имя:* ${formData.name}
-📞 *Телефон:* ${formData.phone}
-📧 *Email:* ${formData.email}
-💼 *Услуга:* ${formData.service || 'Не указана'}
-📝 *Сообщение:* ${formData.message || 'Не указано'}
+👤 Имя: ${formData.name}
+📞 Телефон: ${formData.phone}
+📧 Email: ${formData.email}
+💼 Услуга: ${formData.service || 'Не указана'}
+📝 Сообщение: ${formData.message || 'Не указано'}
 
-📍 *Источник:* сайт akalan.ru
-⏰ *Время:* ${new Date().toLocaleTimeString('ru-RU')}
+📍 akalan.ru
     `.trim();
     
-    // Кодируем сообщение для URL
-    const encodedMessage = encodeURIComponent(message);
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(telegramMessage)}`;
     
-    // Формируем URL для Telegram API
-    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodedMessage}&parse_mode=Markdown`;
+    // 2. Открываем почтовый клиент
+    const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта от ${encodeURIComponent(formData.name)}&body=${encodeURIComponent(`Новая заявка с сайта АКАЛАН
+
+Дата: ${formData.date}
+Имя: ${formData.name}
+Телефон: ${formData.phone}
+Email: ${formData.email}
+Услуга: ${formData.service || 'Не указана'}
+Сообщение: ${formData.message || 'Не указано'}
+
+---
+Отправлено с сайта akalan.ru`)}`;
     
-    // Показываем индикатор загрузки
+    // Показываем индикатор
     const submitBtn = document.querySelector('.submit-btn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
     submitBtn.disabled = true;
     
-    console.log('Отправляем запрос на URL:', url);
-    
-    // Отправляем в Telegram
-    fetch(url)
-        .then(response => {
-            console.log('Ответ получен, статус:', response.status);
-            return response.json();
-        })
+    // Сначала отправляем в Telegram
+    fetch(telegramUrl)
+        .then(response => response.json())
         .then(data => {
-            console.log('Ответ от Telegram:', data);
-            
             if (data.ok) {
-                // Успешно
-                alert('✅ Заявка успешно отправлена! Мы свяжемся с вами в течение 24 часов.');
-                modalOverlay.classList.remove('active');
-                appointmentForm.reset();
-                document.body.style.overflow = 'auto';
+                console.log('✅ Сообщение в Telegram отправлено');
                 
-                // Дополнительно можно отправить копию на почту
-                const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Новая заявка с сайта от ${formData.name}&body=${encodeURIComponent(message)}`;
+                // Затем открываем почтовый клиент
                 setTimeout(() => {
-                    window.open(mailtoLink, '_blank');
+                    window.location.href = mailtoLink;
+                    
+                    // Показываем сообщение
+                    alert('✅ Заявка отправлена!\n\n1. Сообщение отправлено в Telegram группу\n2. Откроется почтовый клиент - нажмите "Отправить"\n\nМы свяжемся с вами в течение 24 часов!');
+                    
+                    modalOverlay.classList.remove('active');
+                    appointmentForm.reset();
+                    document.body.style.overflow = 'auto';
                 }, 1000);
-                
             } else {
-                // Ошибка от Telegram
-                let errorMsg = 'Ошибка отправки: ';
-                if (data.description) {
-                    errorMsg += data.description;
-                } else {
-                    errorMsg += 'неизвестная ошибка';
-                }
-                throw new Error(errorMsg);
+                // Если Telegram не сработал, все равно открываем почту
+                window.location.href = mailtoLink;
+                alert('✅ Открывается почтовый клиент. Заполните письмо и нажмите "Отправить".');
+                
+                modalOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
             }
         })
         .catch(error => {
-            console.error('Ошибка при отправке:', error);
+            // Если ошибка, все равно открываем почту
+            window.location.href = mailtoLink;
+            alert('📧 Заполните письмо и нажмите "Отправить".');
             
-            // Показываем подробную ошибку
-            alert(`⚠️ Произошла ошибка при отправке:\n\n${error.message}\n\nПожалуйста, отправьте заявку вручную на почту: akalan.HQ@yandex.ru`);
-            
-            // Предлагаем отправить на почту
-            const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта от ${formData.name}&body=Имя: ${formData.name}%0AТелефон: ${formData.phone}%0AEmail: ${formData.email}%0AУслуга: ${formData.service}%0AСообщение: ${formData.message}`;
-            
-            if (confirm('Открыть почтовый клиент для отправки?')) {
-                window.location.href = mailtoLink;
-            }
-            
-            // Закрываем модалку
             modalOverlay.classList.remove('active');
-            appointmentForm.reset();
             document.body.style.overflow = 'auto';
         })
         .finally(() => {

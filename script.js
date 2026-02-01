@@ -25,61 +25,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Отправка формы (здесь нужно настроить на ваш сервис)
-    appointmentForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Собираем данные формы
-        const formData = {
-            name: document.getElementById('name').value,
-            phone: document.getElementById('phone').value,
-            email: document.getElementById('email').value,
-            service: document.getElementById('service').value,
-            message: document.getElementById('message').value,
-            date: new Date().toLocaleString()
-        };
-        
-        // ВАЖНО: Здесь нужно настроить отправку данных на ваш сервис
-        // Пример для Formspree (бесплатный сервис отправки форм):
-        // 1. Зарегистрируйтесь на formspree.io
-        // 2. Создайте форму и получите endpoint
-        // 3. Замените action формы в HTML на ваш endpoint
-        
-        // Пример для Telegram бота (нужно создать бота через @BotFather):
-        // 1. Создайте бота и получите токен
-        // 2. Получите chat_id (можно через @userinfobot)
-        // 3. Используйте код ниже, раскомментировав его
-        
-        
-        const botToken = '8242419469:AAHftp2x3w5IBaM40m9yQ5z7WMTmcRdK8lw';
-        const chatId = '8242419469';
-        const message = `Новая заявка от ${formData.name}%0AТелефон: ${formData.phone}%0AEmail: ${formData.email}%0AУслуга: ${formData.service}%0AСообщение: ${formData.message}`;
-        
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${message}&parse_mode=HTML`)
-            .then(response => response.json())
-            .then(data => {
-                alert('Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.');
+ // Отправка формы в Telegram
+appointmentForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Собираем данные формы
+    const formData = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        service: document.getElementById('service').value,
+        message: document.getElementById('message').value,
+        date: new Date().toLocaleString('ru-RU')
+    };
+    
+    // ВАШ chat_id (ЗАМЕНИТЕ НА СВОЙ!)
+    const botToken = '8071734177:AAGFaOJqJLdtPSRj-zQQfk7mkiLsplFXUTE';
+    const chatId = '8071734177'; // ← ЗАМЕНИТЕ ЭТО!
+    
+    // Формируем сообщение
+    const message = `🎯 НОВАЯ ЗАЯВКА С САЙТА АКАЛАН
+📅 ${formData.date}
+👤 Имя: ${formData.name}
+📞 Телефон: ${formData.phone}
+📧 Email: ${formData.email}
+💼 Услуга: ${formData.service}
+📝 Сообщение: ${formData.message || 'Не указано'}`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodedMessage}`;
+    
+    // Показываем индикатор загрузки
+    const submitBtn = document.querySelector('.submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+    submitBtn.disabled = true;
+    
+    // Отправляем в Telegram
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                alert('✅ Заявка успешно отправлена! Мы свяжемся с вами в течение 24 часов.');
                 modalOverlay.classList.remove('active');
                 appointmentForm.reset();
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                alert('Произошла ошибка при отправке. Пожалуйста, попробуйте еще раз или свяжитесь с нами по телефону.');
-            });
-        
-        
-        // Временное решение - показываем сообщение
-        alert('Заявка отправлена! Мы свяжемся с вами в ближайшее время. На реальном сайте здесь будет отправка на ваш сервис.');
-        modalOverlay.classList.remove('active');
-        appointmentForm.reset();
-        document.body.style.overflow = 'auto';
-        
-        // Для быстрого старта можно использовать Google Forms:
-        // 1. Создайте форму в Google Forms
-        // 2. Настройте вопросы
-        // 3. В настройках формы получите ссылку для отправки
-        // 4. Замените action формы в HTML на эту ссылку
-    });
+                document.body.style.overflow = 'auto';
+            } else {
+                throw new Error(data.description || 'Ошибка отправки');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка Telegram:', error);
+            
+            // Резервный вариант - отправка на почту
+            const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта&body=${encodeURIComponent(message)}`;
+            window.location.href = mailtoLink;
+            
+            alert('📧 Если сообщение не отправилось автоматически, скопируйте данные и отправьте на почту: akalan.HQ@yandex.ru');
+            
+            // Закрываем модалку
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        })
+        .finally(() => {
+            // Восстанавливаем кнопку
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+});
     
     // Плавная прокрутка для навигационных ссылок
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {

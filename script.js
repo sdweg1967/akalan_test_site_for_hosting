@@ -59,65 +59,7 @@ appointmentForm.addEventListener('submit', function(e) {
     
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(telegramMessage)}`;
     
-    // 2. Открываем почтовый клиент
-    const mailtoLink = `mailto:akalan.HQ@yandex.ru?subject=Заявка с сайта от ${encodeURIComponent(formData.name)}&body=${encodeURIComponent(`Новая заявка с сайта АКАЛАН
-
-Дата: ${formData.date}
-Имя: ${formData.name}
-Телефон: ${formData.phone}
-Email: ${formData.email}
-Услуга: ${formData.service || 'Не указана'}
-Сообщение: ${formData.message || 'Не указано'}
-
----
-Отправлено с сайта akalan.ru`)}`;
-    
-    // Показываем индикатор
-    const submitBtn = document.querySelector('.submit-btn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
-    submitBtn.disabled = true;
-    
-    // Сначала отправляем в Telegram
-    fetch(telegramUrl)
-        .then(response => response.json())
-        .then(data => {
-            if (data.ok) {
-                console.log('✅ Сообщение в Telegram отправлено');
-                
-                // Затем открываем почтовый клиент
-                setTimeout(() => {
-                    window.location.href = mailtoLink;
-                    
-                    // Показываем сообщение
-                    alert('✅ Заявка отправлена!\n\n1. Сообщение отправлено в Telegram группу\n2. Откроется почтовый клиент - нажмите "Отправить"\n\nМы свяжемся с вами в течение 24 часов!');
-                    
-                    modalOverlay.classList.remove('active');
-                    appointmentForm.reset();
-                    document.body.style.overflow = 'auto';
-                }, 1000);
-            } else {
-                // Если Telegram не сработал, все равно открываем почту
-                window.location.href = mailtoLink;
-                alert('✅ Открывается почтовый клиент. Заполните письмо и нажмите "Отправить".');
-                
-                modalOverlay.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        })
-        .catch(error => {
-            // Если ошибка, все равно открываем почту
-            window.location.href = mailtoLink;
-            alert('📧 Заполните письмо и нажмите "Отправить".');
-            
-            modalOverlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        })
-        .finally(() => {
-            // Восстанавливаем кнопку
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        });
+ 
 });
     
     // Плавная прокрутка для навигационных ссылок
